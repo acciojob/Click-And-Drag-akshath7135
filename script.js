@@ -1,44 +1,50 @@
-const items = document.querySelectorAll('.item');
-let selectedItem = null;
-let offsetX, offsetY;
+// Your code here.
+const itemsContainer = document.querySelector(".items");
+const items = document.querySelectorAll(".item");
 
-// Mouse down event to select the item
+let selectedCube = null;
+let offsetX = 0;
+let offsetY = 0;
+
 items.forEach(item => {
-    item.addEventListener('mousedown', (e) => {
-        selectedItem = item;
-        offsetX = e.clientX - item.getBoundingClientRect().left;
-        offsetY = e.clientY - item.getBoundingClientRect().top;
-        item.style.transition = 'none'; // Disable transition during drag
+    item.addEventListener("mousedown", (event) => {
+        selectedCube = event.target;
+        
+        // Get mouse position relative to the cube
+        const rect = selectedCube.getBoundingClientRect();
+        offsetX = event.clientX - rect.left;
+        offsetY = event.clientY - rect.top;
+
+        // Add mousemove event to track dragging
+        document.addEventListener("mousemove", moveCube);
+        document.addEventListener("mouseup", releaseCube);
     });
 });
 
-// Mouse move event to move the selected item
-document.addEventListener('mousemove', (e) => {
-    if (selectedItem) {
-        const container = document.querySelector('.items');
-        const containerRect = container.getBoundingClientRect();
+function moveCube(event) {
+    if (!selectedCube) return;
 
-        // Calculate new position
-        let newX = e.clientX - offsetX;
-        let newY = e.clientY - offsetY;
+    // Get container boundaries
+    const containerRect = itemsContainer.getBoundingClientRect();
+    const cubeRect = selectedCube.getBoundingClientRect();
 
-        // Boundary conditions
-        if (newX < containerRect.left) newX = containerRect.left;
-        if (newX + selectedItem.offsetWidth > containerRect.right) newX = containerRect.right - selectedItem.offsetWidth;
-        if (newY < containerRect.top) newY = containerRect.top;
-        if (newY + selectedItem.offsetHeight > containerRect.bottom) newY = containerRect.bottom - selectedItem.offsetHeight;
+    let newX = event.clientX - offsetX;
+    let newY = event.clientY - offsetY;
 
-        // Set the new position
-        selectedItem.style.position = 'absolute';
-        selectedItem.style.left = `${newX}px`;
-        selectedItem.style.top = `${newY}px`;
-    }
-});
+    // Prevent cube from moving outside the container
+    if (newX < containerRect.left) newX = containerRect.left;
+    if (newY < containerRect.top) newY = containerRect.top;
+    if (newX + cubeRect.width > containerRect.right) newX = containerRect.right - cubeRect.width;
+    if (newY + cubeRect.height > containerRect.bottom) newY = containerRect.bottom - cubeRect.height;
 
-// Mouse up event to drop the item
-document.addEventListener('mouseup', () => {
-    if (selectedItem) {
-        selectedItem.style.transition = ''; // Re-enable transition
-        selectedItem = null; // Deselect the item
-    }
-});
+    selectedCube.style.position = "absolute";
+    selectedCube.style.left = `${newX}px`;
+    selectedCube.style.top = `${newY}px`;
+}
+
+function releaseCube() {
+    // Remove event listeners after releasing the mouse
+    document.removeEventListener("mousemove", moveCube);
+    document.removeEventListener("mouseup", releaseCube);
+    selectedCube = null;
+}
