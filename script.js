@@ -1,50 +1,35 @@
-// Your code here.
 const itemsContainer = document.querySelector(".items");
-const items = document.querySelectorAll(".item");
 
-let selectedCube = null;
-let offsetX = 0;
-let offsetY = 0;
+let isDragging = false;
+let startX;
+let scrollLeft;
 
-items.forEach(item => {
-    item.addEventListener("mousedown", (event) => {
-        selectedCube = event.target;
-        
-        // Get mouse position relative to the cube
-        const rect = selectedCube.getBoundingClientRect();
-        offsetX = event.clientX - rect.left;
-        offsetY = event.clientY - rect.top;
+itemsContainer.addEventListener("mousedown", (event) => {
+    isDragging = true;
+    itemsContainer.classList.add("active");
 
-        // Add mousemove event to track dragging
-        document.addEventListener("mousemove", moveCube);
-        document.addEventListener("mouseup", releaseCube);
-    });
+    // Capture the initial position
+    startX = event.pageX - itemsContainer.offsetLeft;
+    scrollLeft = itemsContainer.scrollLeft;
 });
 
-function moveCube(event) {
-    if (!selectedCube) return;
+itemsContainer.addEventListener("mousemove", (event) => {
+    if (!isDragging) return;
 
-    // Get container boundaries
-    const containerRect = itemsContainer.getBoundingClientRect();
-    const cubeRect = selectedCube.getBoundingClientRect();
+    event.preventDefault();
 
-    let newX = event.clientX - offsetX;
-    let newY = event.clientY - offsetY;
+    const x = event.pageX - itemsContainer.offsetLeft;
+    const walk = (x - startX) * 2; // Speed factor
 
-    // Prevent cube from moving outside the container
-    if (newX < containerRect.left) newX = containerRect.left;
-    if (newY < containerRect.top) newY = containerRect.top;
-    if (newX + cubeRect.width > containerRect.right) newX = containerRect.right - cubeRect.width;
-    if (newY + cubeRect.height > containerRect.bottom) newY = containerRect.bottom - cubeRect.height;
+    itemsContainer.scrollLeft = scrollLeft - walk;
+});
 
-    selectedCube.style.position = "absolute";
-    selectedCube.style.left = `${newX}px`;
-    selectedCube.style.top = `${newY}px`;
-}
+itemsContainer.addEventListener("mouseup", () => {
+    isDragging = false;
+    itemsContainer.classList.remove("active");
+});
 
-function releaseCube() {
-    // Remove event listeners after releasing the mouse
-    document.removeEventListener("mousemove", moveCube);
-    document.removeEventListener("mouseup", releaseCube);
-    selectedCube = null;
-}
+itemsContainer.addEventListener("mouseleave", () => {
+    isDragging = false;
+    itemsContainer.classList.remove("active");
+});
